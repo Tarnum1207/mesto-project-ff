@@ -1,22 +1,7 @@
-import {initialCards,createCard,toggleLike,deleteCard} from "./cards";
+import {addCardsToPage,createCard,toggleLike,deleteCard} from "./cards";
 import {openImagePopup,openPopup,closePopup} from "./modal";
 
-// @todo: Вывести карточки на страницу
-
-export function addCardsToPage() {
-    const cardsContainer = document.querySelector('.places__list');
-
-    initialCards.forEach(cardData => {
-        const cardElement = createCard(cardData, deleteCard, toggleLike, openImagePopup);
-        cardsContainer.appendChild(cardElement);
-
-        // Найти изображение внутри карточки и добавить обработчик события клика
-        const cardImage = cardElement.querySelector('.card__image');
-        cardImage.addEventListener('click', function () {
-            openImagePopup(cardData.link, cardData.name);
-        });
-    });
-}
+addCardsToPage();
 
 // Открытие и закрытие модального окна
 // @todo: DOM узлы
@@ -26,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const image = document.querySelector('.profile__image');
     const editPopup = document.querySelector('.popup_type_edit');
     const newCardPopup = document.querySelector('.popup_type_new-card');
-    const imagePopup = document.querySelector('.popup_type_image');
     const closeButtons = document.querySelectorAll('.popup__close');
     const formEdit = document.querySelector('.popup_type_edit .popup__form');
     const formNewCard = document.querySelector('.popup_type_new-card .popup__form');
@@ -76,19 +60,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     formNewCard.addEventListener('submit', handleNewCardFormSubmit);
 
-    // Обработчик события нажатия клавиши Esc
-    function handleEscPress(event) {
-        if (event.key === 'Escape') {
-            closePopup(editPopup);
-            closePopup(newCardPopup);
-            closePopup(imagePopup);
-        }
-    }
-
-    document.addEventListener('keydown', handleEscPress);
-
     // Открытие/закрытие модальных окон при клике на кнопки и крестик
     editButton.addEventListener('click', function () {
+        // Заполнение инпутов актуальными данными из профиля
+        const profileTitleValue = profileTitle.textContent;
+        const profileDescriptionValue = profileDescription.textContent;
+        const nameInput = editPopup.querySelector('.popup__input_type_name');
+        const descriptionInput = editPopup.querySelector('.popup__input_type_description');
+
+        nameInput.value = profileTitleValue;
+        descriptionInput.value = profileDescriptionValue;
+
+        // Открытие попапа редактирования профиля
         openPopup(editPopup);
     });
 
@@ -96,8 +79,8 @@ document.addEventListener('DOMContentLoaded', function () {
         openPopup(newCardPopup);
     });
 
-    image.addEventListener('click', function () {
-        openPopup(imagePopup);
+    image.addEventListener('click', function (event) {
+        event.stopPropagation(); // Останавливаем всплытие события, чтобы оно не передавалось выше
     });
 
     closeButtons.forEach(function (button) {
@@ -105,13 +88,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const popup = button.closest('.popup');
             closePopup(popup);
         });
-    });
-
-    // Закрытие модального окна при клике вне его области
-    document.addEventListener('click', function (event) {
-        if (event.target.classList.contains('popup')) {
-            closePopup(event.target);
-        }
     });
 
 });

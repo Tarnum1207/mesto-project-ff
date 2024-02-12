@@ -1,5 +1,5 @@
-import { addCardsToPage } from "./index";
-export const initialCards = [
+import {openImagePopup} from "./modal";
+ const initialCards = [
     {
         name: "Архыз",
         link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/arkhyz.jpg",
@@ -25,6 +25,23 @@ export const initialCards = [
         link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/baikal.jpg",
     }
 ];
+
+// @todo: Вывести карточки на страницу
+
+export function addCardsToPage() {
+    const cardsContainer = document.querySelector('.places__list');
+
+    initialCards.forEach(cardData => {
+        const cardElement = createCard(cardData, deleteCard, toggleLike, openImagePopup);
+        cardsContainer.appendChild(cardElement);
+
+        // Найти изображение внутри карточки и добавить обработчик события клика
+        const cardImage = cardElement.querySelector('.card__image');
+        cardImage.addEventListener('click', function () {
+            openImagePopup(cardData.link, cardData.name);
+        });
+    });
+}
 
 // @todo: Темплейт карточки
 const cardTemplate = document.getElementById('card-template');
@@ -53,8 +70,6 @@ export function createCard(cardData, onDelete, onLike, onImageClick) {
 
     return cardClone;
 }
-
-addCardsToPage();
 
 // Функция обработки события лайка
 export function toggleLike(likeButton) {
