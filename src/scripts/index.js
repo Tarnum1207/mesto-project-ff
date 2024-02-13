@@ -1,7 +1,34 @@
-import {addCardsToPage,createCard,toggleLike,deleteCard} from "./cards";
-import {openImagePopup,openPopup,closePopup} from "./modal";
+import {initialCards} from "./cards";
+import {createCard, toggleLike, deleteCard} from "./card";
+import {openPopup, closePopup, closePopupByOverlay} from "./modal";
+
+// @todo: Вывести карточки на страницу
+
+function addCardsToPage() {
+    const cardsContainer = document.querySelector('.places__list');
+
+    initialCards.forEach(cardData => {
+        const cardElement = createCard(cardData, deleteCard, toggleLike, openImagePopup);
+        cardsContainer.appendChild(cardElement);
+    });
+}
 
 addCardsToPage();
+
+// Функция открытия попапа с изображением
+export function openImagePopup(imageSrc, imageName) {
+    const imagePopup = document.querySelector('.popup_type_image');
+
+    const imagePopupImage = imagePopup.querySelector('.popup__image');
+
+    const imagePopupCaption = imagePopup.querySelector('.popup__caption');
+
+    imagePopupImage.src = imageSrc;
+    imagePopupImage.alt = imageName;
+    imagePopupCaption.textContent = imageName;
+
+    openPopup(imagePopup);
+}
 
 // Открытие и закрытие модального окна
 // @todo: DOM узлы
@@ -22,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     formEdit.addEventListener('submit', function (evt) {
         evt.preventDefault(); // Отменяем стандартное действие формы
 
-    // Получаем значения из полей формы
+        // Получаем значения из полей формы
         const newName = formEdit.querySelector('.popup__input_type_name').value;
         const newDescription = formEdit.querySelector('.popup__input_type_description').value;
 
@@ -91,3 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
+
+// Закрытие модального окна при клике вне его области
+
+document.addEventListener('click', closePopupByOverlay);
