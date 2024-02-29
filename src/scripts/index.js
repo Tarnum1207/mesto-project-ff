@@ -1,26 +1,25 @@
-import {initialCards} from "./cards";
-import {createCard, toggleLike, deleteCard} from "./card";
+import {createCard, toggleLike, deleteCard,likeCard} from "./card";
 import {openPopup, closePopup, closePopupByOverlay} from "./modal";
+import {updateInput} from "./validation";
 
 // @todo: Вывести карточки на страницу
 
-function addCardsToPage() {
-    const cardsContainer = document.querySelector('.places__list');
-
-    initialCards.forEach(cardData => {
-        const cardElement = createCard(cardData, deleteCard, toggleLike, openImagePopup);
-        cardsContainer.appendChild(cardElement);
-    });
-}
-
-addCardsToPage();
+//function addCardsToPage() {
+//    const cardsContainer = document.querySelector('.places__list');
+//
+//    initialCards.forEach(cardData => {
+//        const cardElement = createCard(cardData, deleteCard, toggleLike, openImagePopup);
+//        cardsContainer.appendChild(cardElement);
+//    });
+//}
+//
+//addCardsToPage();
 
 // Функция открытия попапа с изображением
 export function openImagePopup(imageSrc, imageName) {
     const imagePopup = document.querySelector('.popup_type_image');
 
     const imagePopupImage = imagePopup.querySelector('.popup__image');
-
     const imagePopupCaption = imagePopup.querySelector('.popup__caption');
 
     imagePopupImage.src = imageSrc;
@@ -94,16 +93,33 @@ document.addEventListener('DOMContentLoaded', function () {
         const profileDescriptionValue = profileDescription.textContent;
         const nameInput = editPopup.querySelector('.popup__input_type_name');
         const descriptionInput = editPopup.querySelector('.popup__input_type_description');
+        const formEditProfile = editPopup.querySelector('.popup__form');
 
         nameInput.value = profileTitleValue;
         descriptionInput.value = profileDescriptionValue;
 
         // Открытие попапа редактирования профиля
         openPopup(editPopup);
+        updateInput(formEditProfile);
+
+        const button = formEditProfile.querySelector('.popup__button');
+
+        if (button.classList.contains('submit-disabled')) {
+            button.classList.remove('submit-disabled');
+        }
+
     });
 
+        // Открытие попапа добавления новой карточки
     addButton.addEventListener('click', function () {
+        updateInput(formNewCard);
         openPopup(newCardPopup);
+
+        const button = formNewCard.querySelector('.popup__button');
+
+        if (button.classList.contains('submit-disabled')) {
+            button.classList.remove('submit-disabled');
+        }
     });
 
     image.addEventListener('click', function (event) {
