@@ -1,0 +1,54 @@
+@import url('../vendor/normalize.css');
+@import url('../vendor/fonts.css');
+@import url('../blocks/page/page.css');
+@import url('../blocks/header/header.css');
+@import url('../blocks/content/content.css');
+@import url('../blocks/footer/footer.css');
+@import url('../blocks/profile/profile.css');
+@import url('../blocks/places/places.css');
+@import url('../blocks/card/card.css');
+@import url('../blocks/popup/popup.css');
+@import url('../blocks/popup/_is-animated/popup_is-animated.css');
+@import url('../blocks/popup/_is-opened/popup_is-opened.css');
+
+.profile__image {
+    background-image: url('../images/avatar.jpg');
+}
+
+/* Счётчик лайков */
+.card__likes-counter {
+    font-size: 13px;
+}
+
+.card__description-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+/* Стили для показа ошибки при невалидном поле */
+.input__container{
+    height: 28px;
+}
+
+.input_span {
+    display: block;
+    color: red;
+    font-size: 12px;
+}
+
+.input_type-invalid {
+    border-bottom: 1px solid red;
+}
+
+/* Стили для неактивной кнопки */
+.submit-disabled {
+    background: transparent;
+    border: 1px solid #000;
+    color: #000;
+    opacity: .2;
+    transition: .3s;
+    pointer-events: none;
+}
+
