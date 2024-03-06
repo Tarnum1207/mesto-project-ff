@@ -1,6 +1,20 @@
-import {createCard, toggleLike, deleteCard,likeCard} from "./card";
+import {createCard, toggleLike, deleteCard, deleteUserCard, showLikes, editProfile, addNewCard} from "./card";
 import {openPopup, closePopup, closePopupByOverlay} from "./modal";
-import {updateInput} from "./validation";
+import {updateInput, formValidation} from "./validation";
+import {getCards, getUser, updateAvatar} from "./api";
+
+// Вызов функций для получения данных о пользователе и карточек с сервера одновременно
+Promise.all([getUser(), getCards()])
+    .then(([userData, cardsData]) => {
+
+        showLikes();
+        outputUserData(userData);
+        deleteUserCard(userData, cardsData);
+    })
+    .catch(error => {
+        // Обработка ошибок
+        console.error('Ошибка при загрузке данных:', error);
+    });
 
 // @todo: Вывести карточки на страницу
 
@@ -64,15 +78,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Обработчик отправки формы для создания новой карточки
-    function handleNewCardFormSubmit(evt) {
+    async function handleNewCardFormSubmit(evt) {
         evt.preventDefault(); // Отменяем стандартное действие формы
+        const user = await getUser();
 
         // Получаем значения из полей формы
         const newName = formNewCard.elements['place-name'].value;
         const newLink = formNewCard.elements['link'].value;
 
         // Создаем новую карточку с правильными данными
-        const newCard = createCard({name: newName, link: newLink}, deleteCard, toggleLike, openImagePopup);
+        const newCard = createCard({name: newName, link: newLink}, deleteCard, toggleLike, openImagePopup, user._id);
 
         // Добавляем новую карточку в начало контейнера
         placesList.prepend(newCard);
@@ -100,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Открытие попапа редактирования профиля
         openPopup(editPopup);
-        updateInput(formEditProfile);
+        updateInput(formValidationConfig,formEditProfile);
 
         const button = formEditProfile.querySelector('.popup__button');
 
@@ -112,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Открытие попапа добавления новой карточки
     addButton.addEventListener('click', function () {
-        updateInput(formNewCard);
+        updateInput(formValidationConfig, formNewCard);
         openPopup(newCardPopup);
 
         const button = formNewCard.querySelector('.popup__button');
@@ -123,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     image.addEventListener('click', function (event) {
-        event.stopPropagation(); // Останавливаем всплытие события, чтобы оно не передавалось выше
+        event.stopPropagation();
     });
 
     closeButtons.forEach(function (button) {
@@ -135,6 +150,105 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-// Закрытие модального окна при клике вне его области
+// Вызов функции редактирования профиля
+editProfile()
+
+// Вызов функции добавления новой карточки
+addNewCard();
+
+//Функция вывода данных о пользователе с сервера
+  function outputUserData(userData) {
+
+    const userName = document.getElementById('userName');
+    userName.textContent = userData.name;
+
+    const userAbout = document.getElementById('userAbout');
+    userAbout.textContent = userData.about;
+
+    const userAvatar = document.getElementById('userAvatar');
+    userAvatar.style.backgroundImage = `url('${userData.avatar}')`;
+}
 
 document.addEventListener('click', closePopupByOverlay);
+
+  function getAvatar() {
+      const avatarUrlInput = document.querySelector('.popup__input_type_avatar');
+      const avatarUrl = avatarUrlInput.value.trim(); // Получаем значение URL из поля формы и удаляем лишние пробелы
+
+      return(avatarUrl)
+  }
+
+// Изменение аватара
+async function updateAvatarAction() {
+      const avatar = getAvatar()
+        await updateAvatar(getAvatar())
+
+            .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка обновления аватара');
+            }
+            console.log('Аватар успешно обновлен');
+            // После успешного обновления аватара, можно также обновить его на странице
+            const userAvatar = document.getElementById('userAvatar');
+            userAvatar.style.backgroundImage = `url('${getAvatar()}')`;
+        })
+            .catch(error => {
+                console.error('Ошибка при обновлении аватара:', error);
+            })
+            .finally(() => {
+                // Возвращаем исходный текст кнопки после завершения запроса
+                saveAvatarButton.textContent = 'Сохранить';
+            });
+}
+
+
+// Получаем кнопку "Сохранить" из попапа
+const saveAvatarButton = document.querySelector('.popup_type_avatar .popup__button');
+
+// Назначаем обработчик события клика на кнопку "Сохранить"
+saveAvatarButton.addEventListener('click', function(event) {
+    handleAvatarSubmit(event, popupAvatar);
+});
+
+// Обработчик для изменения аватара
+function handleAvatarSubmit(event, popup) {
+    event.preventDefault(); // Отменяем стандартное поведение отправки формы
+
+    // Изменяем текст кнопки на "Сохранение..."
+    saveAvatarButton.textContent = 'Сохранение...';
+
+    // Если все в порядке, вызываем функцию обновления аватара
+    updateAvatarAction()
+    closePopup(popup);
+
+}
+
+// Получаем форму из DOM
+const avatarForm = document.forms['edit-avatar'];
+
+// Назначаем обработчик события submit формы
+avatarForm.addEventListener('submit', function(event) {
+    handleAvatarSubmit(event, popup); // Передаем также попап, чтобы закрыть его после обновления аватара
+});
+
+const avatarImage = document.getElementById('userAvatar'); // Получаем элемент из DOM
+const popupAvatar = document.querySelector('.popup_type_avatar'); // Получаем попап из DOM
+
+// Назначаем обработчик события клика на аватар
+avatarImage.addEventListener('click', function() {
+    // Открываем попап
+    openPopup(popupAvatar);
+});
+
+//Валидация форм
+
+const formValidationConfig = {
+    formSelector: ".popup__form",
+    inputSelector: ".popup__input",
+    submitButtonSelector: ".popup__button",
+    inactiveButtonClass: "submit-disabled",
+    inputErrorClass: "input_type-invalid",
+    errorClass: "input_span",
+};
+
+formValidation(formValidationConfig)
