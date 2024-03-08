@@ -108,4 +108,3 @@ const toggleButton = (formValidationConfig, form, button) => {
         button.classList.remove(formValidationConfig.inactiveButtonClass);
     }
 };
-

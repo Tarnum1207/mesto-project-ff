@@ -6,6 +6,14 @@ const config = {
     },
 };
 
+const getResponseData = (res) => {
+    if (res.ok) {
+        return res.json();
+    } else {
+        return Promise.reject(`Ошибка: ${res.status}`);
+    }
+};
+
 // Функция для загрузки данных о пользователе с сервера
 export function getUser() {
     return fetch(`${config.baseUrl}/users/me`, {
@@ -13,63 +21,28 @@ export function getUser() {
             authorization: config.headers.authorization,
             "Content-Type": config.headers["Content-Type"],
         }
-    })
-        .then(res => res.json())
-        .then(userData => {
-
-            console.log(userData)
-
-            return userData;
-        })
-        .catch(error => {
-            // Обработка ошибки
-            console.error('Ошибка при загрузке информации о пользователе:', error);
-            throw error; // Пробрасываем ошибку дальше для обработки
-        });
+    }).then(getResponseData);
 }
 
-export async function deleteCardApi(cardId) {
-    try {
-        // Отправляем DELETE-запрос для удаления карточки
-        const response = await fetch(`${config.baseUrl}/cards/${cardId}`, {
-            method: 'DELETE',
-            headers: {
-                authorization: config.headers.authorization,
-                "Content-Type": config.headers["Content-Type"],
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Ошибка при удалении карточки: ${response.status}`);
+//Функция удаления карточки с сервера
+export function deleteCardApi(cardId) {
+    return fetch(`${config.baseUrl}/cards/${cardId}`, {
+        method: 'DELETE',
+        headers: {
+            authorization: config.headers.authorization,
+            "Content-Type": config.headers["Content-Type"],
         }
-
-
-    } catch (error) {
-        console.error('Ошибка при удалении карточки:', error);
-    }
+    }).then(getResponseData);
 }
 
-// Функция для загрузки карточек с сервера
-export async function getCards() {
-    try {
-
-        // Получаем карточки с сервера
-        const cardsResponse = await fetch(`${config.baseUrl}/cards`, {
-            headers: {
-                authorization: config.headers.authorization,
-                "Content-Type": config.headers["Content-Type"],
-            }
-        });
-        const cardsData = await cardsResponse.json();
-
-        console.log(cardsData)
-
-        return cardsData;
-    } catch (error) {
-        // Обработка ошибки
-        console.error('Ошибка при загрузке карточек:', error);
-        throw error;
-    }
+// Функция для загрузки данных карточек с сервера
+export function getCards() {
+    return fetch(`${config.baseUrl}/cards`, {
+        headers: {
+            authorization: config.headers.authorization,
+            "Content-Type": config.headers["Content-Type"],
+        }
+    }).then(getResponseData);
 }
 
 // Функция редактирования профиля
@@ -84,33 +57,19 @@ export function editProfileApi(newName, newAbout) {
             name: newName,
             about: newAbout
         })
-    });
+    }).then(getResponseData);
 }
 
 // Функция добавления новой карточки
 export function addNewCardApi(newName, newLink) {
     return fetch(`${config.baseUrl}/cards`, {
-        method: 'POST',
-        headers: {
-            authorization: config.headers.authorization,
-            'Content-Type': 'application/json'
-        },
+        method: "POST",
+        headers: config.headers,
         body: JSON.stringify({
             name: newName,
-            link: newLink
-        })
-    });
-}
-
-// Функция вывода количества лайков
-export function showLikesApi() {
-    return fetch(`${config.baseUrl}/cards`, {
-        method: 'GET',
-        headers: {
-            authorization: config.headers.authorization,
-            "Content-Type": config.headers["Content-Type"],
-        }
-    });
+            link: newLink,
+        }),
+    }).then(getResponseData);
 }
 
 // Постановка лайка
@@ -121,7 +80,7 @@ export function setCardLikeApi(cardsData) {
             authorization: config.headers.authorization,
             "Content-Type": config.headers["Content-Type"],
         }
-    });
+    }).then(getResponseData);
 }
 
 // Снятие лайка
@@ -132,7 +91,7 @@ export function deleteCardLikeApi(cardsData) {
             authorization: config.headers.authorization,
             "Content-Type": config.headers["Content-Type"],
         }
-    });
+    }).then(getResponseData);
 }
 
 // Функция обновления аватара пользователя
@@ -144,6 +103,5 @@ export function updateAvatar(avatarUrl) {
             "Content-Type": config.headers["Content-Type"],
         },
         body: JSON.stringify({ avatar: avatarUrl })
-    })
-
+    }).then(getResponseData);
 }

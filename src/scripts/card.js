@@ -1,20 +1,22 @@
-import {deleteCardLikeApi, showLikesApi, setCardLikeApi, deleteCardApi, getCards, getUser, editProfileApi, addNewCardApi} from "./api";
-import {openImagePopup} from "./index";
+import {deleteCardLikeApi, setCardLikeApi, deleteCardApi} from "./api";
 // @todo: Темплейт карточки
 const cardTemplate = document.getElementById('card-template');
-const placesList = document.querySelector('.places__list');
 
 // Функция создания карточки
-export function createCard(cardData, onDelete, onLike, onImageClick, userId) {
+export function createCard(cardData, onDelete, onLike, userId, openImagePopup) {
     const cardClone = cardTemplate.content.cloneNode(true).querySelector('.places__item');
     const cardTitle = cardClone.querySelector('.card__title');
     const cardImage = cardClone.querySelector('.card__image');
     const deleteButton = cardClone.querySelector('.card__delete-button');
     const likeButton = cardClone.querySelector('.card__like-button');
+    const likesCounter = cardClone.querySelector('.card__likes-counter');
 
     cardTitle.textContent = cardData.name;
     cardImage.src = cardData.link;
     cardImage.alt = cardData.name;
+
+    //Вывод количества лайков
+    likesCounter.textContent = cardData?.likes?.length;
 
     // Добавляем обработчики событий для кнопок удаления и лайка
     likeButton.addEventListener('click', () => {
@@ -28,18 +30,21 @@ export function createCard(cardData, onDelete, onLike, onImageClick, userId) {
     });
 
     // Добавляем обработчик события для изображения (картинки)
-    cardImage.addEventListener('click', () => onImageClick(cardData.link, cardData.name));
+    cardImage.addEventListener('click', () => openImagePopup(cardData.link, cardData.name));
 
-   cardData?.likes?.forEach((like) => {
-       if(like._id === userId) {
-           toggleLike(likeButton)
-       }
-   })
-    toggleDeleteButton(deleteButton, cardData?.owner?._id, userId, cardData?._id);
+    // Проверяем, принадлежит ли карточка текущему пользователю
+    toggleDeleteButton(deleteButton, cardData.owner?._id, userId, cardData._id);
+
+    cardData?.likes?.forEach((like) => {
+        if (like._id === userId) {
+            toggleLike(likeButton);
+        }
+    });
 
     return cardClone;
 }
 
+//Функция удаления карточки
 export function toggleDeleteButton(deleteButton, ownerId, userId, cardId) {
     if (ownerId === userId) {
         deleteButton.style.display = 'block';
@@ -56,124 +61,6 @@ export function toggleDeleteButton(deleteButton, ownerId, userId, cardId) {
     }
 }
 
-export async function setCards() {
-
-    try {
-
-        // Получаем данные о пользователе
-        const user = await getUser();
-
-        getCards().then(cardsData => {
-            placesList.innerHTML = '';
-            // Отображаем карточки на странице
-            cardsData.forEach(card => {
-                const newCard = createCard(card, deleteCard, toggleLike, openImagePopup, user._id);
-                placesList.appendChild(newCard);
-            });
-        })
-
-    } catch (error) {
-        // Обработка ошибки
-        console.error('Ошибка при загрузке карточек:', error);
-        throw error;
-    }
-
-}
-
-setCards()
-
-// Функция редактирования профиля
-export function editProfile() {
-    const editProfileForm = document.querySelector('.popup_type_edit .popup__form');
-    const saveButton = editProfileForm.querySelector('.popup__button');
-
-    editProfileForm.addEventListener('submit', function (evt) {
-        evt.preventDefault(); // Отменяем стандартное действие формы
-
-        // Получаем значения из полей формы
-        const newName = editProfileForm.querySelector('.popup__input_type_name').value;
-        const newAbout = editProfileForm.querySelector('.popup__input_type_description').value;
-
-        // Изменяем текст кнопки на "Сохранение..."
-        saveButton.textContent = 'Сохранение...';
-
-        // Отправляем запрос на сервер для обновления данных профиля
-        editProfileApi(newName, newAbout)
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`Ошибка: ${res.status}`);
-                }
-                return res.json();
-            })
-            .then(updatedUserData => {
-                // Обработка успешного обновления данных профиля
-                console.log('Данные профиля успешно обновлены:', updatedUserData);
-                // Можно обновить данные на странице, если необходимо
-            })
-            .catch(error => {
-                // Обработка ошибки
-                console.error('Ошибка при обновлении данных профиля:', error);
-            })
-            .finally(() => {
-                // Возвращаем исходный текст кнопки после завершения запроса
-                saveButton.textContent = 'Сохранить';
-            });
-    });
-}
-
-// Функция добавления новой карточки
-export function addNewCard() {
-    const newCardForm = document.querySelector('.popup_type_new-card .popup__form');
-    const saveButton = newCardForm.querySelector('.popup__button');
-
-    newCardForm.addEventListener('submit', function (evt) {
-        evt.preventDefault(); // Отменяем стандартное действие формы
-
-        // Получаем значения из полей формы
-        const newName = newCardForm.querySelector('.popup__input_type_card-name').value;
-        const newLink = newCardForm.querySelector('.popup__input_type_url').value;
-
-        // Изменяем текст кнопки на "Сохранение..."
-        saveButton.textContent = 'Сохранение...';
-
-        // Отправляем запрос на сервер для создания новой карточки
-        addNewCardApi(newName, newLink)
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`Ошибка: ${res.status}`);
-                }
-                return res.json();
-            })
-            .then(newCardData => {
-                // Обработка успешного создания новой карточки
-                console.log('Новая карточка успешно создана:', newCardData);
-                // Можно обновить данные на странице, если необходимо
-                // Например, добавить новую карточку в интерфейс
-            })
-            .catch(error => {
-                // Обработка ошибки
-                console.error('Ошибка при создании новой карточки:', error);
-            })
-            .finally(() => {
-                // Возвращаем исходный текст кнопки после завершения запроса
-                saveButton.textContent = 'Сохранить';
-                setCards()
-            });
-    });
-}
-
-// Функция удаления карточки
-export function deleteUserCard(userData, cardsData) {
-    const userId = userData._id;
-
-    cardsData.forEach((data, index) => {
-        const deleteButton = document.querySelectorAll('.card__delete-button')[index];
-        const ownerId = data.owner._id;
-
-        // Проверяем, принадлежит ли карточка текущему пользователю
-        toggleDeleteButton(deleteButton, ownerId, userId, data._id);
-    });
-}
 
 // Функция обработки события лайка
 export function toggleLike(likeButton) {
@@ -184,30 +71,10 @@ export function toggleLike(likeButton) {
 export async function deleteCardLike(cardsData, stroke) {
     try {
         const response = await deleteCardLikeApi(cardsData);
-        if (!response.ok) {
-            throw new Error(`Ошибка при снятии лайка: ${response.status}`);
-        }
-        const data = await response.json();
-        updateLikeCardUser(stroke, data);
+
+        updateLikeCardUser(stroke, response);
     } catch (error) {
         console.error('Ошибка при снятии лайка:', error);
-    }
-}
-
-// Функция вывода количества лайков
-export async function showLikes() {
-    try {
-        const response = await showLikesApi();
-        if (!response.ok) {
-            throw new Error(`Ошибка при получении данных карточки: ${response.status}`);
-        }
-        const cards = await response.json();
-        const likesCounters = document.querySelectorAll('.card__likes-counter');
-        cards.forEach((card, index) => {
-            likesCounters[index].textContent = card.likes.length || 0;
-        });
-    } catch (error) {
-        console.error('Ошибка при получении данных карточки', error);
     }
 }
 
@@ -215,11 +82,8 @@ export async function showLikes() {
 export async function setCardLike(cardsData, stroke) {
     try {
         const response = await setCardLikeApi(cardsData);
-        if (!response.ok) {
-            throw new Error('Ошибка при постановке лайка');
-        }
-        const data = await response.json();
-        updateLikeCardUser(stroke, data);
+
+        updateLikeCardUser(stroke, response);
     } catch (error) {
         console.error('Ошибка при постановке лайка:', error);
     }
