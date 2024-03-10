@@ -12,6 +12,7 @@ export const formValidation = (formValidationConfig) => {
 const arrayInput = (formValidationConfig, form) => {
     const findInput = Array.from(form.querySelectorAll(formValidationConfig.inputSelector))
     const saveButton = form.querySelector(formValidationConfig.submitButtonSelector)
+    saveButton.classList.add(formValidationConfig.inactiveButtonClass);
 
     findInput.forEach((input) => {
         input.addEventListener('input', () => {

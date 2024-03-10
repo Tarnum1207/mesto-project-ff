@@ -4,7 +4,7 @@ const cardTemplate = document.getElementById('card-template');
 
 // Функция создания карточки
 export function createCard(cardData, onDelete, onLike, userId, openImagePopup) {
-    const cardClone = cardTemplate.content.cloneNode(true).querySelector('.places__item');
+    const cardClone = cardTemplate.content.querySelector('.places__item').cloneNode(true);
     const cardTitle = cardClone.querySelector('.card__title');
     const cardImage = cardClone.querySelector('.card__image');
     const deleteButton = cardClone.querySelector('.card__delete-button');

@@ -11,7 +11,7 @@ export function closePopup(popup) {
 }
 
 // Обработчик события нажатия клавиши Esc
-export function handleEscPress(event) {
+function handleEscPress(event) {
     if (event.key === 'Escape') {
         const openedPopup = document.querySelector('.popup_is-opened');
         if (openedPopup) {
