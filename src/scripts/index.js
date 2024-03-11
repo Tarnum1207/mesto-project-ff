@@ -49,6 +49,7 @@ let user = {};
     const formEdit = document.querySelector('.popup_type_edit .popup__form');
     const profileTitle = document.querySelector('.profile__title');
     const profileDescription = document.querySelector('.profile__description');
+    const editSaveButton = formEdit.querySelector('.popup__button');
 
 
 
@@ -60,19 +61,16 @@ let user = {};
         const profileDescriptionValue = profileDescription.textContent;
         const nameInput = editPopup.querySelector('.popup__input_type_name');
         const descriptionInput = editPopup.querySelector('.popup__input_type_description');
-        const formEditProfile = editPopup.querySelector('.popup__form');
 
         nameInput.value = profileTitleValue;
         descriptionInput.value = profileDescriptionValue;
 
         // Открытие попапа редактирования профиля
         openPopup(editPopup);
-        updateInput(formValidationConfig,formEditProfile);
+        updateInput(formValidationConfig,formEdit);
 
-        const button = formEditProfile.querySelector('.popup__button');
-
-        if (button.classList.contains('submit-disabled')) {
-            button.classList.remove('submit-disabled');
+        if (editSaveButton.classList.contains('submit-disabled')) {
+            editSaveButton.classList.remove('submit-disabled');
         }
 
     });
@@ -122,14 +120,15 @@ popups.forEach(popup => {
   }
 
 // Изменение аватара
-async function updateAvatarAction() {
-        await updateAvatar(getAvatar())
+function updateAvatarAction(popup) {
+         updateAvatar(getAvatar())
             .then(response => {
-
             console.log('Аватар успешно обновлен');
             // После успешного обновления аватара, можно также обновить его на странице
             const userAvatar = document.getElementById('userAvatar');
             userAvatar.style.backgroundImage = `url('${response.avatar}')`;
+            // Закрываем попап с изменением аватара после успешного обновления
+            closePopup(popup);
         })
             .catch(error => {
                 console.error('Ошибка при обновлении аватара:', error);
@@ -141,8 +140,8 @@ async function updateAvatarAction() {
 }
 
 // Получаем кнопку "Сохранить" из попапа
-const saveAvatarButton = document.querySelector('.popup_type_avatar .popup__button');
 const avatarForm = document.forms['edit-avatar'];
+const saveAvatarButton = avatarForm.querySelector('.popup__button');
 
 // Назначаем обработчик события клика на кнопку "Сохранить"
 avatarForm.addEventListener('submit', function(event) {
@@ -159,8 +158,7 @@ function handleAvatarSubmit(event, popup) {
     saveAvatarButton.textContent = 'Сохранение...';
 
     // Если все в порядке, вызываем функцию обновления аватара
-    updateAvatarAction()
-    closePopup(popup);
+    updateAvatarAction(popup)
 
 }
 
@@ -176,7 +174,6 @@ avatarImage.addEventListener('click', function() {
 
 // Функция редактирования профиля
 function editProfile() {
-    const saveButton = formEdit.querySelector('.popup__button');
 
     formEdit.addEventListener('submit', function (evt) {
         evt.preventDefault(); // Отменяем стандартное действие формы
@@ -185,12 +182,8 @@ function editProfile() {
         const newName = formEdit.querySelector('.popup__input_type_name').value;
         const newAbout = formEdit.querySelector('.popup__input_type_description').value;
 
-        // Вставляем новые значения в профиль
-        profileTitle.textContent = newName;
-        profileDescription.textContent = newAbout;
-
         // Изменяем текст кнопки на "Сохранение..."
-        saveButton.textContent = 'Сохранение...';
+        editSaveButton.textContent = 'Сохранение...';
 
         // Отправляем запрос на сервер для обновления данных профиля
         editProfileApi(newName, newAbout)
@@ -198,7 +191,11 @@ function editProfile() {
             .then(updatedUserData => {
                 // Обработка успешного обновления данных профиля
                 console.log('Данные профиля успешно обновлены:', updatedUserData);
-                // Можно обновить данные на странице, если необходимо
+                // Вставляем новые значения в профиль
+                profileTitle.textContent = newName;
+                profileDescription.textContent = newAbout;
+                // Закрываем модальное окно
+                closePopup(editPopup);
             })
             .catch(error => {
                 // Обработка ошибки
@@ -206,11 +203,8 @@ function editProfile() {
             })
             .finally(() => {
                 // Возвращаем исходный текст кнопки после завершения запроса
-                saveButton.textContent = 'Сохранить';
+                editSaveButton.textContent = 'Сохранить';
             });
-
-        // Закрываем модальное окно
-        closePopup(editPopup);
 
     });
 }
@@ -220,7 +214,7 @@ editProfile()
 
 // Функция добавления новой карточки
 function addNewCard() {
-    const newCardForm = document.querySelector('.popup_type_new-card .popup__form');
+    const newCardForm = newCardPopup.querySelector('.popup__form');
     const saveButton = newCardForm.querySelector('.popup__button');
 
     newCardForm.addEventListener('submit', function (evt) {
@@ -246,18 +240,17 @@ function addNewCard() {
                 const newCard = createCard(newCardData, deleteCard, toggleLike, user._id, openImagePopup);
 
                 placesList.prepend(newCard);
+                // Возвращаем исходный текст кнопки после завершения запроса
+                saveButton.textContent = 'Сохранить';
+                saveButton.classList.add('submit-disabled');
+                newCardForm.reset()
                 closePopup(newCardPopup);
             })
             .catch(error => {
                 // Обработка ошибки
                 console.error('Ошибка при создании новой карточки:', error);
             })
-            .finally(() => {
-                // Возвращаем исходный текст кнопки после завершения запроса
-                saveButton.textContent = 'Сохранить';
-                saveButton.classList.add('submit-disabled');
-                newCardForm.reset()
-            });
+
     });
 }
 
